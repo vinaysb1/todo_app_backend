@@ -1,36 +1,59 @@
+import pool from '../database/database';
+import { QueryResult } from 'pg';
 import Notification from '../models/notificationModel';
+import * as notificationQueries from '../database/notificationQueries';
 
-const notifications: Notification[] = [];
-let idgen = 1;
-
-export const getNotifications = (): Notification[] => {
-  return notifications;
-};
-
-export const createNotification = (newNotificationData: Notification): number => {
-  const newNotification: Notification = { ...newNotificationData, id: idgen++ };
-  notifications.push(newNotification);
-  return newNotification.id;
-};
-
-export const updateNotification = (id: number, updatedNotificationData: Notification): boolean => {
-  const index = notifications.findIndex(n => n.id === id);
-  if (index !== -1) {
-    notifications[index] = { ...notifications[index], ...updatedNotificationData };
-    return true;
+const getNotifications = async (): Promise<Notification[]> => {
+  try {
+    const { rows }: QueryResult = await pool.query(notificationQueries.getNotificationsQuery);
+    return rows;
+  } catch (error) {
+    throw new Error(`Error getting notifications: ${error}`);
   }
-  return false;
 };
 
-export const deleteNotification = (id: number): boolean => {
-  const index = notifications.findIndex(n => n.id === id);
-  if (index !== -1) {
-    notifications.splice(index, 1);
-    return true;
+const createNotification = async (newNotificationData: Notification): Promise<number> => {
+  const values = Object.values(newNotificationData);
+  try {
+    const { rows }: QueryResult = await pool.query(notificationQueries.createNotificationQuery, values);
+    return rows[0].id;
+  } catch (error) {
+    throw new Error(`Error creating notification: ${error}`);
   }
-  return false;
 };
 
-export const getNotificationById = (id: number): Notification | undefined => {
-  return notifications.find(n => n.id === id);
+const updateNotification = async (id: number, updatedNotificationData: Notification): Promise<boolean> => {
+  const values = [...Object.values(updatedNotificationData), id];
+  try {
+    await pool.query(notificationQueries.updateNotificationQuery, values);
+    return true;
+  } catch (error) {
+    throw new Error(`Error updating notification: ${error}`);
+  }
+};
+
+const deleteNotification = async (id: number): Promise<boolean> => {
+  try {
+    await pool.query(notificationQueries.deleteNotificationQuery, [id]);
+    return true;
+  } catch (error) {
+    throw new Error(`Error deleting notification: ${error}`);
+  }
+};
+
+const getNotificationById = async (id: number): Promise<Notification | undefined> => {
+  try {
+    const { rows }: QueryResult = await pool.query(notificationQueries.getNotificationByIdQuery, [id]);
+    return rows[0];
+  } catch (error) {
+    throw new Error(`Error getting notification by id: ${error}`);
+  }
+};
+
+export {
+  getNotifications,
+  createNotification,
+  updateNotification,
+  deleteNotification,
+  getNotificationById
 };
