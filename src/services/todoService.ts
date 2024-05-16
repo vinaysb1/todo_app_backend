@@ -19,6 +19,7 @@ const createTodoService = async (newTodo: Todo): Promise<Todo> => {
     try {
         const { title, description } = newTodo;
         const result = await client.query(dbQueries.addTodo, [title, description]);
+        console.log(result);
         return result.rows[0];
     } finally {
         client.release();
@@ -43,7 +44,7 @@ const deleteTodoService = async (todoId: number): Promise<void> => {
     const client = await pool.connect();
     try {
         const result = await client.query(dbQueries.deleteTodo, [todoId]);
-        if (result.rowCount === 0) {
+                if (result.rowCount === 0) {
             throw new Error('Todo not found');
         }
     } finally {
