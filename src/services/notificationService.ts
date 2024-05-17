@@ -14,6 +14,7 @@ const getNotifications = async (): Promise<Notification[]> => {
 
 const createNotification = async (newNotificationData: Notification): Promise<number> => {
   const values = Object.values(newNotificationData);
+  console.log(values)
   try {
     const { rows }: QueryResult = await pool.query(notificationQueries.createNotificationQuery, values);
     return rows[0].id;
@@ -24,7 +25,7 @@ const createNotification = async (newNotificationData: Notification): Promise<nu
 
 const updateNotification = async (id: number, updatedNotificationData: Notification): Promise<boolean> => {
   const values = [...Object.values(updatedNotificationData), id];
-  try {
+    try {
     await pool.query(notificationQueries.updateNotificationQuery, values);
     return true;
   } catch (error) {
